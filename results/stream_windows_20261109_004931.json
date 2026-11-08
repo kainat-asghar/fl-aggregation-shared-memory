@@ -1,0 +1,288 @@
+{
+  "timestamp": "20261109_004931",
+  "os": "windows",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "cpu": "AMD Ryzen 7 7735HS with Radeon Graphics",
+  "physical_cores": 8,
+  "logical_cores": 16,
+  "ram_gib": 15.19,
+  "python": "3.12.10",
+  "numpy": "2.5.4",
+  "array_mb": 512.0,
+  "reps": 10,
+  "peak_gb_s": 20.99,
+  "peak_kernel": "read",
+  "peak_threads": 16,
+  "rows": [
+    {
+      "kernel": "copy",
+      "threads": 1,
+      "bytes_moved": 1024000000,
+      "best_s": 0.074364,
+      "median_s": 0.075825,
+      "best_gb_s": 13.77,
+      "median_gb_s": 13.5
+    },
+    {
+      "kernel": "copy",
+      "threads": 2,
+      "bytes_moved": 1024000000,
+      "best_s": 0.068695,
+      "median_s": 0.069277,
+      "best_gb_s": 14.91,
+      "median_gb_s": 14.78
+    },
+    {
+      "kernel": "copy",
+      "threads": 4,
+      "bytes_moved": 1024000000,
+      "best_s": 0.065012,
+      "median_s": 0.068154,
+      "best_gb_s": 15.75,
+      "median_gb_s": 15.02
+    },
+    {
+      "kernel": "copy",
+      "threads": 8,
+      "bytes_moved": 1024000000,
+      "best_s": 0.063898,
+      "median_s": 0.064969,
+      "best_gb_s": 16.03,
+      "median_gb_s": 15.76
+    },
+    {
+      "kernel": "copy",
+      "threads": 16,
+      "bytes_moved": 1024000000,
+      "best_s": 0.065076,
+      "median_s": 0.066305,
+      "best_gb_s": 15.74,
+      "median_gb_s": 15.44
+    },
+    {
+      "kernel": "scale",
+      "threads": 1,
+      "bytes_moved": 1024000000,
+      "best_s": 0.070143,
+      "median_s": 0.078139,
+      "best_gb_s": 14.6,
+      "median_gb_s": 13.1
+    },
+    {
+      "kernel": "scale",
+      "threads": 2,
+      "bytes_moved": 1024000000,
+      "best_s": 0.065461,
+      "median_s": 0.066451,
+      "best_gb_s": 15.64,
+      "median_gb_s": 15.41
+    },
+    {
+      "kernel": "scale",
+      "threads": 4,
+      "bytes_moved": 1024000000,
+      "best_s": 0.063194,
+      "median_s": 0.063894,
+      "best_gb_s": 16.2,
+      "median_gb_s": 16.03
+    },
+    {
+      "kernel": "scale",
+      "threads": 8,
+      "bytes_moved": 1024000000,
+      "best_s": 0.064441,
+      "median_s": 0.06489,
+      "best_gb_s": 15.89,
+      "median_gb_s": 15.78
+    },
+    {
+      "kernel": "scale",
+      "threads": 16,
+      "bytes_moved": 1024000000,
+      "best_s": 0.065537,
+      "median_s": 0.06607,
+      "best_gb_s": 15.62,
+      "median_gb_s": 15.5
+    },
+    {
+      "kernel": "add",
+      "threads": 1,
+      "bytes_moved": 1536000000,
+      "best_s": 0.087728,
+      "median_s": 0.088924,
+      "best_gb_s": 17.51,
+      "median_gb_s": 17.27
+    },
+    {
+      "kernel": "add",
+      "threads": 2,
+      "bytes_moved": 1536000000,
+      "best_s": 0.083868,
+      "median_s": 0.085776,
+      "best_gb_s": 18.31,
+      "median_gb_s": 17.91
+    },
+    {
+      "kernel": "add",
+      "threads": 4,
+      "bytes_moved": 1536000000,
+      "best_s": 0.083347,
+      "median_s": 0.083865,
+      "best_gb_s": 18.43,
+      "median_gb_s": 18.32
+    },
+    {
+      "kernel": "add",
+      "threads": 8,
+      "bytes_moved": 1536000000,
+      "best_s": 0.08454,
+      "median_s": 0.085579,
+      "best_gb_s": 18.17,
+      "median_gb_s": 17.95
+    },
+    {
+      "kernel": "add",
+      "threads": 16,
+      "bytes_moved": 1536000000,
+      "best_s": 0.085327,
+      "median_s": 0.086623,
+      "best_gb_s": 18.0,
+      "median_gb_s": 17.73
+    },
+    {
+      "kernel": "triad",
+      "threads": 1,
+      "bytes_moved": 1536000000,
+      "best_s": 0.101019,
+      "median_s": 0.103258,
+      "best_gb_s": 15.21,
+      "median_gb_s": 14.88
+    },
+    {
+      "kernel": "triad",
+      "threads": 2,
+      "bytes_moved": 1536000000,
+      "best_s": 0.101336,
+      "median_s": 0.103862,
+      "best_gb_s": 15.16,
+      "median_gb_s": 14.79
+    },
+    {
+      "kernel": "triad",
+      "threads": 4,
+      "bytes_moved": 1536000000,
+      "best_s": 0.110956,
+      "median_s": 0.112592,
+      "best_gb_s": 13.84,
+      "median_gb_s": 13.64
+    },
+    {
+      "kernel": "triad",
+      "threads": 8,
+      "bytes_moved": 1536000000,
+      "best_s": 0.133529,
+      "median_s": 0.134691,
+      "best_gb_s": 11.5,
+      "median_gb_s": 11.4
+    },
+    {
+      "kernel": "triad",
+      "threads": 16,
+      "bytes_moved": 1536000000,
+      "best_s": 0.144305,
+      "median_s": 0.147051,
+      "best_gb_s": 10.64,
+      "median_gb_s": 10.45
+    },
+    {
+      "kernel": "read",
+      "threads": 1,
+      "bytes_moved": 512000000,
+      "best_s": 0.126964,
+      "median_s": 0.127502,
+      "best_gb_s": 4.03,
+      "median_gb_s": 4.02
+    },
+    {
+      "kernel": "read",
+      "threads": 2,
+      "bytes_moved": 512000000,
+      "best_s": 0.065426,
+      "median_s": 0.066572,
+      "best_gb_s": 7.83,
+      "median_gb_s": 7.69
+    },
+    {
+      "kernel": "read",
+      "threads": 4,
+      "bytes_moved": 512000000,
+      "best_s": 0.037253,
+      "median_s": 0.037599,
+      "best_gb_s": 13.74,
+      "median_gb_s": 13.62
+    },
+    {
+      "kernel": "read",
+      "threads": 8,
+      "bytes_moved": 512000000,
+      "best_s": 0.02498,
+      "median_s": 0.026831,
+      "best_gb_s": 20.5,
+      "median_gb_s": 19.08
+    },
+    {
+      "kernel": "read",
+      "threads": 16,
+      "bytes_moved": 512000000,
+      "best_s": 0.024395,
+      "median_s": 0.024906,
+      "best_gb_s": 20.99,
+      "median_gb_s": 20.56
+    },
+    {
+      "kernel": "fma",
+      "threads": 1,
+      "bytes_moved": 512000000,
+      "best_s": 0.041963,
+      "median_s": 0.043001,
+      "best_gb_s": 12.2,
+      "median_gb_s": 11.91
+    },
+    {
+      "kernel": "fma",
+      "threads": 2,
+      "bytes_moved": 512000000,
+      "best_s": 0.036894,
+      "median_s": 0.037628,
+      "best_gb_s": 13.88,
+      "median_gb_s": 13.61
+    },
+    {
+      "kernel": "fma",
+      "threads": 4,
+      "bytes_moved": 512000000,
+      "best_s": 0.054782,
+      "median_s": 0.059602,
+      "best_gb_s": 9.35,
+      "median_gb_s": 8.59
+    },
+    {
+      "kernel": "fma",
+      "threads": 8,
+      "bytes_moved": 512000000,
+      "best_s": 0.096734,
+      "median_s": 0.098819,
+      "best_gb_s": 5.29,
+      "median_gb_s": 5.18
+    },
+    {
+      "kernel": "fma",
+      "threads": 16,
+      "bytes_moved": 512000000,
+      "best_s": 0.118325,
+      "median_s": 0.124749,
+      "best_gb_s": 4.33,
+      "median_gb_s": 4.1
+    }
+  ]
+}

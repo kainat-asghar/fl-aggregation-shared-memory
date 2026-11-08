@@ -1,0 +1,8 @@
+numpy>=1.24
+psutil>=5.9
+pandas>=2.0
+matplotlib>=3.7
+torch>=2.1
+torchvision>=0.16
+datasets>=2.16      # FEMNIST from the Hugging Face hub (flwrlabs/femnist)
+numba>=0.58         # optional Numba baseline (Khan et al. [6]); remove if it fails to install

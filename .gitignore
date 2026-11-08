@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/missfont.log

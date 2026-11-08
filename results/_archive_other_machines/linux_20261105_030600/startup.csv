@@ -1,0 +1,4 @@
+os,start_method,W,startup_s
+linux,fork,1,0.0037
+linux,fork,2,0.0032
+linux,fork,4,0.0044

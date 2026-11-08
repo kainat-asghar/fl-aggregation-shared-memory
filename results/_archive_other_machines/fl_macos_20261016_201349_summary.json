@@ -1,0 +1,112 @@
+{
+  "os": "macos",
+  "start_method": "spawn",
+  "workers": 4,
+  "args": {
+    "datasets": [
+      "cifar10",
+      "femnist"
+    ],
+    "schemes": [
+      "A",
+      "B",
+      "C"
+    ],
+    "clients": 20,
+    "rounds": 20,
+    "local_epochs": 1,
+    "batch_size": 32,
+    "lr": 0.01,
+    "alpha": 0.5,
+    "writers_per_client": 10,
+    "workers": 4,
+    "torch_threads": 10,
+    "start_method": null,
+    "seed": 0,
+    "data": "data",
+    "out": "results",
+    "quick": false
+  },
+  "datasets": {
+    "cifar10": {
+      "params": 62006,
+      "clients": 20,
+      "client_sizes": [
+        3837,
+        1079,
+        1824,
+        2934,
+        3108,
+        2736,
+        1214,
+        4614,
+        2382,
+        2352,
+        2975,
+        2464,
+        1705,
+        1939,
+        3560,
+        1928,
+        1275,
+        3843,
+        1559,
+        2672
+      ],
+      "in_ch": 3,
+      "n_classes": 10,
+      "img": 32,
+      "split": "dirichlet alpha=0.5",
+      "final_acc": {
+        "A": 0.5341,
+        "B": 0.5339,
+        "C": 0.5341
+      },
+      "max_abs_acc_diff_vs_A": {
+        "A": 0.0,
+        "B": 0.00269999999999998,
+        "C": 0.0
+      }
+    },
+    "femnist": {
+      "params": 66126,
+      "clients": 20,
+      "client_sizes": [
+        2159,
+        2089,
+        1766,
+        1570,
+        2080,
+        2406,
+        2051,
+        1807,
+        2015,
+        1822,
+        2222,
+        1999,
+        1572,
+        2136,
+        1927,
+        1769,
+        2102,
+        2177,
+        2071,
+        1991
+      ],
+      "in_ch": 1,
+      "n_classes": 62,
+      "img": 28,
+      "split": "10 writers per client",
+      "final_acc": {
+        "A": 0.8050474646909007,
+        "B": 0.8027321139152581,
+        "C": 0.8050474646909007
+      },
+      "max_abs_acc_diff_vs_A": {
+        "A": 0.0,
+        "B": 0.0050937717064134524,
+        "C": 0.0
+      }
+    }
+  }
+}

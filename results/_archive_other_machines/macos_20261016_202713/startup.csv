@@ -1,0 +1,5 @@
+os,start_method,W,startup_s
+macos,spawn,1,0.0704
+macos,spawn,2,0.0636
+macos,spawn,4,0.0682
+macos,spawn,8,0.0980

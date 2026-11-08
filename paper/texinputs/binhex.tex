@@ -1,0 +1,15 @@
+%% binhex.tex - Minimal stub providing \hexnumber@ for newtxtext/newtxmath
+%% Based on the standard binhex package by D. Arseneau
+\def\hexnumber@#1{%
+  \ifcase#1 0\or 1\or 2\or 3\or 4\or 5\or 6\or 7\or 8\or
+    9\or A\or B\or C\or D\or E\or F\fi}
+\def\dectohex#1{%
+  \expandafter\dectohex@\number#1\relax}
+\def\dectohex@#1\relax{%
+  \ifnum#1>15
+    \expandafter\dectohex@\number\numexpr(#1-\numexpr#1/16\relax*16)\relax\relax
+    \hexnumber@{\numexpr#1/16\relax}%
+  \else
+    \hexnumber@{#1}%
+  \fi}
+\endinput
