@@ -44,51 +44,62 @@ ALIGN = 16  # slice boundaries aligned to 16 floats = 64 B cache line (no false 
 # --------------------------------------------------------------------------- kernel
 # Inner tile, in float32 elements, for the cache-blocked kernel.
 #
-# Each concurrent worker keeps two private tiles hot: the accumulator slice of
-# `out` and the scratch buffer `tmp`. A single worker is therefore happy with a
-# 1 MB tile, but W workers need W x 2 x tile bytes of last-level cache between
-# them. With the historical fixed 1 MB tile, eight workers need 16 MB, which is
-# exactly the LLC of the machine used here, and measured throughput collapses
-# (see the tile-size ablation in the paper). The tile is therefore derived from
-# the concurrency: we budget a quarter of the LLC for the workers' private
-# tiles, i.e. W * 2 * tile <= LLC / 4.
+# Each concurrent worker keeps two tiles hot: the accumulator slice of `out` and
+# the scratch buffer `tmp`. The governing cache is the PER-CORE L2, not the
+# shared LLC: a tile-size sweep (see the paper) shows the optimum halving as the
+# worker count doubles and then flooring, with the best times at a tile of L2 for
+# a lone worker and L2/8 from four workers upward. Two effects bracket it. Too
+# large, and the workers' resident sets contend, which is catastrophic: the
+# historical fixed 1 MB tile costs ~80% at W=4 and ~200% at W=8 on this machine.
+# Too small, and per-tile NumPy call overhead dominates: a 16 KB tile doubles
+# even the single-threaded time. Hence the floor.
+#
+# The constants below were tuned by measurement on one machine; what is expected
+# to transfer is the shape (shrink the tile as W grows, floor it against
+# interpreter overhead), not the exact divisors. Re-run the sweep to re-tune.
 #
 # Tiling never changes the arithmetic: within a tile each output element still
 # accumulates clients in order 0..n-1, so results are independent of tile size
 # and slice partitioning stays bit-identical to the sequential baseline.
 MAX_TILE = 262_144           # 1 MB of float32, the historical fixed value
-MIN_TILE = 16_384            # 64 KB of float32
+MIN_TILE = 4_096             # 16 KB of float32, hard lower bound
 DEFAULT_LLC = 8 * 1024 ** 2  # assumed last-level cache when detection fails
+DEFAULT_L2 = 512 * 1024      # assumed per-core L2 when detection fails
 
 
-def llc_bytes():
-    """Size of the last-level cache in bytes, or DEFAULT_LLC if unknown."""
+def cache_sizes():
+    """(per-core L2, last-level cache) in bytes; defaults if undetectable."""
+    l2 = llc = 0
     try:
         if sys.platform.startswith("linux"):
-            best = 0
             base = "/sys/devices/system/cpu/cpu0/cache"
-            for idx in os.listdir(base):
+            for idx in sorted(os.listdir(base)):
                 if not idx.startswith("index"):
                     continue
                 try:
                     with open(os.path.join(base, idx, "size")) as f:
                         s = f.read().strip()
-                except OSError:
+                    with open(os.path.join(base, idx, "level")) as f:
+                        lvl = int(f.read().strip())
+                except (OSError, ValueError):
                     continue
                 mult = {"K": 1024, "M": 1024 ** 2}.get(s[-1].upper(), 1)
-                best = max(best, int(s.rstrip("KMkm")) * mult)
-            return best or DEFAULT_LLC
-        if sys.platform == "darwin":
+                nbytes = int(s.rstrip("KMkm")) * mult
+                llc = max(llc, nbytes)
+                if lvl == 2:
+                    l2 = max(l2, nbytes)
+        elif sys.platform == "darwin":
             import subprocess
-            for key in ("hw.l3cachesize", "hw.l2cachesize"):
+
+            def sysctl(key):
                 try:
-                    v = int(subprocess.check_output(["sysctl", "-n", key], text=True))
-                    if v:
-                        return v
+                    return int(subprocess.check_output(["sysctl", "-n", key],
+                                                       text=True))
                 except Exception:
-                    continue
-            return DEFAULT_LLC
-        if os.name == "nt":
+                    return 0
+            l2 = sysctl("hw.l2cachesize")
+            llc = sysctl("hw.l3cachesize") or l2
+        elif os.name == "nt":
             import ctypes
             from ctypes import wintypes
             RelationCache = 2
@@ -97,41 +108,56 @@ def llc_bytes():
             k32.GetLogicalProcessorInformationEx(RelationCache, None,
                                                  ctypes.byref(need))
             buf = (ctypes.c_ubyte * need.value)()
-            if not k32.GetLogicalProcessorInformationEx(RelationCache, buf,
-                                                        ctypes.byref(need)):
-                return DEFAULT_LLC
-            best, off = 0, 0
-            while off < need.value:
-                # SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX: Relationship, Size,
-                # then CACHE_RELATIONSHIP { Level, Assoc, LineSize, CacheSize }
-                size = int.from_bytes(bytes(buf[off + 4:off + 8]), "little")
-                if size == 0:
-                    break
-                cache_size = int.from_bytes(bytes(buf[off + 12:off + 16]), "little")
-                best = max(best, cache_size)
-                off += size
-            return best or DEFAULT_LLC
+            if k32.GetLogicalProcessorInformationEx(RelationCache, buf,
+                                                    ctypes.byref(need)):
+                off = 0
+                while off < need.value:
+                    # SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX:
+                    #   DWORD Relationship; DWORD Size;
+                    #   CACHE_RELATIONSHIP { BYTE Level; BYTE Assoc;
+                    #                        WORD LineSize; DWORD CacheSize; ... }
+                    size = int.from_bytes(bytes(buf[off + 4:off + 8]), "little")
+                    if size == 0:
+                        break
+                    level = buf[off + 8]
+                    nbytes = int.from_bytes(bytes(buf[off + 12:off + 16]), "little")
+                    llc = max(llc, nbytes)
+                    if level == 2:
+                        l2 = max(l2, nbytes)
+                    off += size
     except Exception:
         pass
-    return DEFAULT_LLC
+    return (l2 or DEFAULT_L2), (llc or DEFAULT_LLC)
 
 
-_LLC = llc_bytes()
+def llc_bytes():
+    """Size of the last-level cache in bytes (kept for callers/tests)."""
+    return cache_sizes()[1]
+
+
+_L2, _LLC = cache_sizes()
 
 
 def tile_elems(W, m=None):
     """Inner tile in float32 elements for W concurrent workers over m params.
 
-    Budget a quarter of the LLC for the W workers' two private tiles each, clamp
-    into [MIN_TILE, MAX_TILE], and never use a tile larger than the work itself
-    (so small models keep running as a single untiled pass, as before).
+    A lone worker gets a full L2-sized tile, which amortizes the per-tile NumPy
+    call overhead. Contending workers get L2/(2W), floored at L2/8 so the tile
+    never shrinks far enough for that call overhead to dominate and capped at
+    L2/4. The tile is additionally capped at the length of the work itself, so a
+    model smaller than one tile runs as a single untiled pass.
+    See the module header: these divisors were tuned by measurement.
     An explicit FL_AGG_TILE_KB overrides the rule, for the ablation.
     """
     env = os.environ.get("FL_AGG_TILE_KB")
     if env:
         t = max(1024, int(float(env) * 1024) // ITEM)
+    elif max(1, W) == 1:
+        t = _L2 // ITEM
     else:
-        t = max(MIN_TILE, min(MAX_TILE, _LLC // (8 * max(1, W) * ITEM)))
+        lo, hi = _L2 // (8 * ITEM), _L2 // (4 * ITEM)
+        t = max(lo, min(hi, _L2 // (2 * W * ITEM)))
+    t = max(MIN_TILE, min(MAX_TILE, t))
     return max(1, min(t, m) if m else t)
 
 

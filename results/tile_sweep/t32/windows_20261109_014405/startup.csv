@@ -1,0 +1,5 @@
+os,start_method,W,startup_s
+windows,spawn,1,0.1997
+windows,spawn,2,0.2101
+windows,spawn,4,0.2315
+windows,spawn,8,0.3474

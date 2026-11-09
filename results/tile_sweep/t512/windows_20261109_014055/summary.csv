@@ -1,0 +1,6 @@
+os,start_method,kernel,model,P,N,block_mb,scheme,partition,W,reps,median_s,q1_s,q3_s,min_s,max_s,warmup_s,speedup_vs_A,efficiency,maxdiff_vs_A,allclose,sys_cpu_mean_pct,sys_cpu_max_core_pct,proc_cpu_cores,idle_mem_mb,peak_mem_mb,extra_mem_mb,sim_arrival_max_s,cpu_per_core_pct
+windows,spawn,blocked,mobilenetv2,3504872,50,668.5,A_sequential,-,1,10,0.054929,0.054697,0.055225,0.054274,0.055714,0.054821,1.000,1.000,0,True,7.2,76.1,1.0,853.7,853.7,0.0,2.637,6;2;76;0;0;0;27;3;0;0;2;0;0;0;0;0
+windows,spawn,blocked,mobilenetv2,3504872,50,668.5,C_shm,slice,1,10,0.055475,0.055157,0.055948,0.054852,0.057640,0.209579,0.990,0.990,0,True,8.1,96.9,1.01,888.3,888.4,0.1,2.637,5;2;97;2;2;2;5;12;0;2;3;0;0;0;0;0
+windows,spawn,blocked,mobilenetv2,3504872,50,668.5,C_shm,slice,2,10,0.042217,0.041823,0.042748,0.041214,0.044390,0.112106,1.301,0.651,0,True,14.8,97.1,1.99,910.0,910.0,0.0,2.637,27;0;97;3;3;5;73;25;0;0;2;2;0;0;0;2
+windows,spawn,blocked,mobilenetv2,3504872,50,668.5,C_shm,slice,4,10,0.043686,0.043416,0.044013,0.043180,0.050817,0.069657,1.257,0.314,0,True,25.5,100.0,3.99,952.6,952.7,0.0,2.637,97;3;94;4;96;0;100;0;8;2;2;0;0;0;2;2
+windows,spawn,blocked,mobilenetv2,3504872,50,668.5,C_shm,slice,8,10,0.063207,0.062596,0.064527,0.061474,0.068765,0.073720,0.869,0.109,0,True,52.1,100.0,7.82,1038.7,1038.7,0.0,2.637,81;32;76;91;100;2;88;24;97;6;91;3;42;4;94;2

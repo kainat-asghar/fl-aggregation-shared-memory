@@ -85,14 +85,17 @@ starts paging). Run `python benchmark.py -h` for the full list.
 
 | Folder / file | Role |
 |---|---|
-| `results/windows_20261109_005757/` | **Canonical scalability sweep.** Every number in the paper's Tables V and VIII and Figs. 3-6 comes from here. 294/294 configurations pass `allclose`; max abs diff 5.59e-9. |
+| `results/windows_20261109_202153/` | **Canonical scalability sweep.** Every number in Tables V and IX and Figs. 3, 4, 6, 7 comes from here. 294/294 configurations pass `allclose`; max abs diff 5.59e-9. |
 | `results/fl_windows_20261109_004227.csv` (+ `_summary.json`) | **Correctness track.** Table IV and Fig. 2. Scheme C is bit-identical to A in every round of both datasets. |
 | `results/stream_windows_20261109_004931.{csv,json}` | **Memory-bandwidth ceiling.** Table VI and the roofline argument in Section V-D. |
-| `results/ablation_fixed_1mb_tile/` | **Ablation only.** The same sweep run with the historical fixed 1 MB tile, used for Table VII. Not a separate result. |
+| `results/tile_sweep/` | **Tile-size sweep.** Fig. 5: tile size (16 KB - 2 MB) crossed with W, on MobileNetV2 N=50 and ResNet-18 N=25. The data the tile rule was derived from. |
+| `results/ablation_fixed_1mb_tile/` | **Ablation arm**, Table VII: the full sweep with the historical fixed 1 MB tile. |
+| `results/ablation_llc_rule_tile/` | **Ablation arm**, Table VII: the full sweep with an LLC-budgeted tile, the intermediate rule that fixes the collapse but still forfeits ~25%. |
 | `results/_archive_other_machines/` | Superseded runs from an Apple M4 and an Intel i5-10500H. **Not used by the paper.** Kept only so the earlier work is not lost. |
 
 Do not mix rows from different folders: the machines differ, and so do the tile
-rules.
+rules. The three full sweeps differ **only** in the tile rule, so they are
+directly comparable to each other; everything else about them is identical.
 
 ## 5. Outputs
 
@@ -128,19 +131,31 @@ order. As a result:
   partitioning is bit-identical to Scheme A.
 
 **Tile size is derived from the worker count.** Each worker keeps two
-tile-sized buffers hot (its slice of the accumulator, plus scratch), so `W`
-workers occupy `W * 2 * tile` bytes of the shared last-level cache.
-`tile_elems(W, m)` budgets a quarter of the detected LLC for them
-(`W * 2 * tile <= LLC/4`), clamps to [64 KB, 1 MB], and never exceeds the slice
-length, so a model smaller than one tile is processed in a single untiled pass.
-On a 16 MB LLC this gives 1 MB at W<=2, 512 KB at W=4 and 256 KB at W=8.
+tile-sized buffers hot (its slice of the accumulator, plus scratch). The
+governing cache is the **per-core L2**, not the shared LLC. `tile_elems(W, m)`
+gives a lone worker a full L2-sized tile and contending workers `L2/(2W)`,
+clamped to `[L2/8, L2/4]`, never exceeding the slice length, so a model smaller
+than one tile runs as a single untiled pass. With a 512 KB L2 this gives
+512 KB at W=1, 128 KB at W=2 and 64 KB at W=4 and 8 — which is exactly the
+measured optimum at each W (`results/tile_sweep/`).
 
-This matters: the historical fixed 1 MB tile needs 16 MB across eight workers
-and collapses throughput by up to 60% on machines whose LLC is comparable
-(see `results/ablation_fixed_1mb_tile/` and Table VII of the paper). The tile
-changes only the traversal order, never the arithmetic, so results are bitwise
-independent of it. Set `FL_AGG_TILE_KB` to override the rule and reproduce the
-ablation, e.g. `FL_AGG_TILE_KB=1024` for the old fixed behaviour.
+This matters a great deal. The historical fixed 1 MB tile inverts the scaling
+curve: at W=8 it makes shared memory *slower than sequential* (0.51x on
+ResNet-18) where the tuned rule reaches 1.65x. An LLC-budgeted rule fixes the
+inversion but still forfeits ~25%. Both arms are kept as full sweeps
+(`results/ablation_fixed_1mb_tile/`, `results/ablation_llc_rule_tile/`) for
+Table VII.
+
+Two bounds set the optimum, and both are visible in Fig. 5 of the paper: above
+it the workers' resident sets contend (a 2 MB tile at W=8 is 4x slower than
+64 KB), below it per-tile NumPy call overhead dominates (a 16 KB tile nearly
+doubles even single-threaded time). The divisors were tuned on this machine;
+the shape of the rule is what transfers, so re-run the sweep on new hardware.
+
+The tile changes only the traversal order, never the arithmetic, so results are
+bitwise independent of it. Set `FL_AGG_TILE_KB` to override the rule and
+reproduce either ablation, e.g. `FL_AGG_TILE_KB=1024` for the old fixed
+behaviour.
 
 `--kernel axpy` runs the literal per-client loop of the pseudocode, and
 `--kernel gemv` runs one single-threaded BLAS call. BLAS is pinned to one
